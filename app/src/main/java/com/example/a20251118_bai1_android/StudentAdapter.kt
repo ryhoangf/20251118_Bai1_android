@@ -9,27 +9,35 @@ import androidx.recyclerview.widget.RecyclerView
 
 class StudentAdapter(
     private val studentList: MutableList<Student>,
-    private val onEditClick: (Int) -> Unit,  // Hàm callback khi nhấn vào item (để sửa)
-    private val onDeleteClick: (Int) -> Unit // Hàm callback khi nhấn nút xóa
+    private val onItemClick: (Int) -> Unit,  // Callback khi nhấn vào item (để mở chi tiết)
+    private val onDeleteClick: (Int) -> Unit // Callback khi nhấn nút xóa
 ) : RecyclerView.Adapter<StudentAdapter.StudentViewHolder>() {
 
     inner class StudentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        // Ánh xạ View
         val tvName: TextView = itemView.findViewById(R.id.tvName)
         val tvId: TextView = itemView.findViewById(R.id.tvId)
         val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
 
-        fun bind(student: Student, position: Int) {
+        fun bind(student: Student) {
             tvName.text = student.fullName
             tvId.text = student.studentId
 
-            // Xử lý nút xóa
+            // Xử lý nút XÓA
             btnDelete.setOnClickListener {
-                onDeleteClick(position)
+                // Sử dụng bindingAdapterPosition để lấy vị trí thực tế an toàn hơn
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onDeleteClick(position)
+                }
             }
 
-            // Xử lý click vào dòng (để đưa dữ liệu lên form sửa)
+            // Xử lý click vào ITEM (để mở màn hình chi tiết)
             itemView.setOnClickListener {
-                onEditClick(position)
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClick(position)
+                }
             }
         }
     }
@@ -41,7 +49,8 @@ class StudentAdapter(
     }
 
     override fun onBindViewHolder(holder: StudentViewHolder, position: Int) {
-        holder.bind(studentList[position], position)
+        // Chỉ truyền object Student, không truyền position vào hàm bind để tránh nhầm lẫn
+        holder.bind(studentList[position])
     }
 
     override fun getItemCount(): Int = studentList.size
