@@ -8,13 +8,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class StudentAdapter(
-    private val studentList: MutableList<Student>,
-    private val onItemClick: (Int) -> Unit,  // Callback khi nhấn vào item (để mở chi tiết)
-    private val onDeleteClick: (Int) -> Unit // Callback khi nhấn nút xóa
+    private var studentList: MutableList<Student>,
+    private val onItemClick: (Int) -> Unit,
+    private val onDeleteClick: (Int) -> Unit
 ) : RecyclerView.Adapter<StudentAdapter.StudentViewHolder>() {
 
     inner class StudentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // Ánh xạ View
         val tvName: TextView = itemView.findViewById(R.id.tvName)
         val tvId: TextView = itemView.findViewById(R.id.tvId)
         val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
@@ -23,18 +22,15 @@ class StudentAdapter(
             tvName.text = student.fullName
             tvId.text = student.studentId
 
-            // Xử lý nút XÓA
             btnDelete.setOnClickListener {
-                // Sử dụng bindingAdapterPosition để lấy vị trí thực tế an toàn hơn
-                val position = bindingAdapterPosition
+                val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onDeleteClick(position)
                 }
             }
 
-            // Xử lý click vào ITEM (để mở màn hình chi tiết)
             itemView.setOnClickListener {
-                val position = bindingAdapterPosition
+                val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onItemClick(position)
                 }
@@ -49,9 +45,14 @@ class StudentAdapter(
     }
 
     override fun onBindViewHolder(holder: StudentViewHolder, position: Int) {
-        // Chỉ truyền object Student, không truyền position vào hàm bind để tránh nhầm lẫn
         holder.bind(studentList[position])
     }
 
     override fun getItemCount(): Int = studentList.size
+
+    fun updateData(newList: List<Student>) {
+        studentList.clear()
+        studentList.addAll(newList)
+        notifyDataSetChanged()
+    }
 }
