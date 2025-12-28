@@ -1,41 +1,44 @@
 package com.example.a20251118_bai1_android
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
-class StudentViewModel : ViewModel() {
+// Chuyển sang AndroidViewModel để lấy Application Context
+class StudentViewModel(application: Application) : AndroidViewModel(application) {
+
     private val _studentList = MutableLiveData<MutableList<Student>>()
     val studentList: LiveData<MutableList<Student>> get() = _studentList
 
+    private val dbHelper: StudentDatabaseHelper = StudentDatabaseHelper(application)
+
     init {
-        val initialData = mutableListOf(
-            Student("20200001", "Nguyễn Văn A", "0901234567", "Hà Nội"),
-            Student("20200002", "Trần Thị B", "0909876543", "HCM")
-        )
-        _studentList.value = initialData
+        loadData()
+    }
+
+    // Hàm load lại dữ liệu từ DB lên LiveData
+    private fun loadData() {
+        _studentList.value = dbHelper.getAllStudents()
     }
 
     fun addStudent(student: Student) {
-        val currentList = _studentList.value ?: mutableListOf()
-        currentList.add(student)
-        _studentList.value = currentList
+        dbHelper.addStudent(student)
+        loadData() // Refresh lại list sau khi thêm
     }
 
     fun updateStudent(originalId: String, updatedStudent: Student) {
-        val currentList = _studentList.value ?: return
-        val index = currentList.indexOfFirst { it.studentId == originalId }
-        if (index != -1) {
-            currentList[index] = updatedStudent
-            _studentList.value = currentList
-        }
+        dbHelper.updateStudent(originalId, updatedStudent)
+        loadData() // Refresh lại list sau khi sửa
     }
 
     fun deleteStudent(position: Int) {
         val currentList = _studentList.value ?: return
         if (position in currentList.indices) {
-            currentList.removeAt(position)
-            _studentList.value = currentList
+            val studentToDelete = currentList[position]
+            // Gọi DB xóa theo MSSV (Primary Key)
+            dbHelper.deleteStudent(studentToDelete.studentId)
+            loadData() // Refresh lại list sau khi xóa
         }
     }
 }
